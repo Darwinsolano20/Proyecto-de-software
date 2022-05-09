@@ -1,0 +1,28 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Post;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class PostManagementTest extends TestCase
+{
+    use RefreshDatabase;
+    
+    /** @test  */
+    public function a_post_can_be_deleted() //Prueba de la funcion para eliminar un registo post de la base de datos
+    {
+	    $this->withoutExceptionHandling();
+
+        $post = factory(Post::class)->create();//Datos de prueba
+
+        $response = $this->delete('/post/' .$post->id);
+   
+	    $this->assertCount(0, Post::all());
+    
+        $response->assertRedirect('/posts');
+
+    }
+}
