@@ -1,0 +1,104 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Post;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class PostManagementTest extends TestCase
+{
+    use RefreshDatabase;
+
+    /** @test  */
+    public function list_of_post_can_be_retrived() //Prueba de la funcion para ver todos los registos post de la base de datos
+    {
+	    $this->withoutExceptionHandling();
+
+	    factory(Post::class, 3)->create();//Datos de prueba
+	
+	    $response =$this->get('/posts'); //Llamado de la prueba
+
+	    $response->assertOK();
+
+	    $posts = Post::all();
+
+	    $response->assertViewIS('posts.index');
+	    $response->assertViewHas('posts', $posts);
+    }
+
+    /** @test  */
+    public function a_post_can_be_retrived() //Prueba de la funcion para ver un registo post de la base de datos
+    {
+	    $this->withoutExceptionHandling();
+
+	    $post = factory(Post::class)->create();//Datos de prueba
+	
+	    $response =$this->get('/posts/' . $post->id); //Llamado de la prueba
+
+	    $response->assertOK();
+
+	    $post = Post::first();
+
+	    $response->assertViewIS('posts.show');
+	    $response->assertViewHas('posts', $post);
+    }
+    
+    /** @test  */
+    public function a_post_can_be_created() //Prueba de la funcion para crear un registo post de la base de datos
+    {
+	    $this->withoutExceptionHandling();
+
+        $response = $this->post('/post', [
+		'usuario' => 'Test usuarios',
+		'rol' => 'Test rol'
+	    ]);
+   
+	    $this->assertCount(1, Post::all());
+
+	    $post = Post::first();
+	
+	    $this->assertEquals($post->user, 'Test usuarios');
+	    $this->assertEquals($post->rol, 'Test rol');
+    
+        $response->assertRedirect('/posts/' . $post->id);
+    }
+
+    /** @test  */
+    public function a_post_can_be_update() //Prueba de la funcion para actualizar un registo post de la base de datos
+    {
+	    $this->withoutExceptionHandling();
+
+        $post = factory(Post::class)->create();//Datos de prueba
+
+        $response = $this->put('/post/' . $post->id, [
+		'usuario' => 'Test usuarios',
+		'rol' => 'Test rol'
+	    ]);
+   
+	    $this->assertCount(1, Post::all());
+
+	    $post = Post::fresh();
+	
+	    $this->assertEquals($post->user, 'Test usuarios');
+	    $this->assertEquals($post->rol, 'Test rol');
+    
+        $response->assertRedirect('/posts/' . $post->id);
+    }
+    
+    /** @test  */
+    public function a_post_can_be_deleted() //Prueba de la funcion para eliminar un registo post de la base de datos
+    {
+	    $this->withoutExceptionHandling();
+
+        $post = factory(Post::class)->create();//Datos de prueba
+
+        $response = $this->delete('/post/' .$post->id);
+   
+	    $this->assertCount(0, Post::all());
+    
+        $response->assertRedirect('/posts');
+
+    }
+}
